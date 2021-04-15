@@ -9,6 +9,7 @@
 #include "TString.h"
 #include <TStopwatch.h>
 #include <TComplex.h>
+#include "toyflowinputs.h"
 
 std::string prd(const double x, const int decDigits, const int width);
 std::string center(const string s, const int w);
@@ -17,30 +18,28 @@ double DeltaPhi(double phi1, double phi2); // relative angle
 void toymc()
 {
 	// Declare variables
-	 //Number of Centralities
+	cout<< strCentrality[0]<<endl;
 	Int_t Nevt = 10000;
-	
 	Int_t NPhiHist = 10;
-	Double_t phiarray[Nch];
 	Double_t Psi_n[NH]={0.0};
-	Double_t vn_psi[NC][NH]={0.0};
-	Double_t vn_obs_EP[NC][NH]={0.0};
-	Double_t vn_phi[NC][NH]={0.0};
+	Double_t vn_psi[NH][NC]={0.0};
+	Double_t vn_obs_EP[NH][NC]={0.0};
+	Double_t vn_phi[NH][NC]={0.0};
 	Double_t weight = 1.0;
 	//Double_t Qn_x[NH];//={0.0};
 	//Double_t Qn_y[NH];//={0.0};
-	Double_t MeanArrayTwoParticle[NC][NH]={0.0};
-	Double_t MeanArrayEventPlane[NC][NH]={0.0};
-	Double_t MeanArrayEventPlaneQVec[NC][NH]={0.0};
-	Double_t MeanArrayEvtPlError[NC][NH]={0.0};
-	Double_t MeanArrayEvtPlErrorQvec[NC][NH]={0.0};
-	Double_t MeanArrayTwoPartError[NC][NH]={0.0};
-	Double_t MeanArrayResolution[NC][NH]={0.0};
-	Double_t MeanArrayResolutionError[NC][NH]={0.0};
-	Double_t vn_obs_ERROR[[NC]NH]={0.0};
-	Double_t vn_TwoPart[NC][NH]={0.0};
-	Double_t vn_EvtPl[NC][NH]={0.0};
-	Double_t vn_EvtPlQvec[NC][NH]={0.0};
+	Double_t MeanArrayTwoParticle[NH][NC]={0.0};
+	Double_t MeanArrayEventPlane[NH][NC]={0.0};
+	Double_t MeanArrayEventPlaneQVec[NH][NC]={0.0};
+	Double_t MeanArrayEvtPlError[NH][NC]={0.0};
+	Double_t MeanArrayEvtPlErrorQvec[NH][NC]={0.0};
+	Double_t MeanArrayTwoPartError[NH][NC]={0.0};
+	Double_t MeanArrayResolution[NH][NC]={0.0};
+	Double_t MeanArrayResolutionError[NH][NC]={0.0};
+	Double_t vn_obs_ERROR[NH][NC]={0.0};
+	Double_t vn_TwoPart[NH][NC]={0.0};
+	Double_t vn_EvtPl[NH][NC]={0.0};
+	Double_t vn_EvtPlQvec[NH][NC]={0.0};
 
 
 
@@ -59,40 +58,49 @@ void toymc()
 	TF1 *uniform[NH];
 	//TF1 *fourier[NH]; 
 
-	TH1D *hEventPlane[NH];
-	TH1D *hEventPlaneEP[NH];
-	TH1D *hTwoParticle[NH];
-	TH1D *hPhiPsi[NH];
-	TH1D *hPhiPsiQ[NH];
-	TH1D *hDeltaPhi[NH];
-	TH1D *hPhiEvent[NPhiHist];
-	TH1D *hResolution[NH];
-	TH1D *hResolutionDist[NH];
+	TH1D *hEventPlane[NH][NC];
+	TH1D *hEventPlaneEP[NH][NC];
+	TH1D *hTwoParticle[NH][NC];
+	TH1D *hPhiPsi[NH][NC];
+	TH1D *hPhiPsiQ[NH][NC];
+	TH1D *hDeltaPhi[NH][NC];
+	TH1D *hPhiEvent[NPhiHist][NC];
+	TH1D *hResolution[NH][NC];
+	TH1D *hResolutionDist[NH][NC];
 
 	TF1 *fourier = new TF1("Fourier", "[0]*(1+2*[1]*TMath::Cos(1*(x-[6])) + 2*[2]*TMath::Cos(2*(x-[7])) + 2*[3]*TMath::Cos(3*(x-[8])) + 2*[4]*TMath::Cos(4*(x-[9])) + 2*[5]*TMath::Cos(5*(x-[10])))", 0.0, 2.0*TMath::Pi());
 	//range 0 to 2*pi
-	for (Int_t n=0; n<NH; n++){
+	for (Int_t ih=0; ih<NH; ih++){
 
 		//------Symmetry planes random ------
-		uniform[n]= new TF1(Form("uniform%02d",n+1),"[0]", -1*TMath::Pi()/(n+1), 1.0*TMath::Pi()/(n+1));
-		uniform[n]->SetParameter(0,1.);
+		uniform[ih]= new TF1(Form("uniform%02d",ih+1),"[0]", -1*TMath::Pi()/(ih+1), 1.0*TMath::Pi()/(ih+1));
+		uniform[ih]->SetParameter(0,1.);
 
-		//-----Histograms---------
-		hEventPlane[n]=new TH1D(Form("hEventPlane%02d",n+1),Form("hEventPlane%02d",n+1),200,-1.0, 1.0);
-		hEventPlaneEP[n]=new TH1D(Form("hEventPlaneEP%02d",n+1),Form("hEventPlaneEP%02d",n+1),200,-1.0, 1.0);
-		hTwoParticle[n]=new TH1D(Form("hTwoParticle%02d",n+1),Form("hTwoParticle%02d",n+1),200,-1.0, 1.0);
-		hPhiPsi[n] = new TH1D(Form("hPhiPsi%02d",n+1),Form("hPhiPsi%02d",n+1),200,0.0, 2.0*TMath::Pi());
-		hPhiPsiQ[n] = new TH1D(Form("hPhiPsiQ%02d",n+1),Form("hPhiPsiQ%02d",n+1),200,0.0, 2.0*TMath::Pi());
-		hDeltaPhi[n] = new TH1D(Form("hDeltaPhi%02d",n+1),Form("hDeltaPhi%02d",n+1),200,0.0, 2.0*TMath::Pi());
-		hResolution[n] = new TH1D(Form("hResolution%02d",n+1),Form("hResolution%02d",n+1),200,-100, 100);
-		hResolutionDist[n] = new TH1D(Form("hResolutionDist%02d",n+1),Form("hResolutionDist%02d",n+1),200,-10, 10);
+		for (Int_t ic=0; ic<NC; ic++){
+			//-----Histograms---------
+			hEventPlane[ih][ic]=new TH1D(Form("hEventPlane%02d_%s",ih+1,strCentrality[ic].Data()),Form("hEventPlane%02d_%s",ih+1,strCentrality[ic].Data()),200,-1.0, 1.0);
+			hEventPlaneEP[ih][ic]=new TH1D(Form("hEventPlaneEP%02d_%s",ih+1,strCentrality[ic].Data()),Form("hEventPlaneEP%02d_%s",ih+1,strCentrality[ic].Data()),200,-1.0, 1.0);
+			hTwoParticle[ih][ic]=new TH1D(Form("hTwoParticle%02d_%s",ih+1,strCentrality[ic].Data()),Form("hTwoParticle%02d_%s",ih+1,strCentrality[ic].Data()),200,-1.0, 1.0);
+			hPhiPsi[ih][ic] = new TH1D(Form("hPhiPsi%02d_%s",ih+1,strCentrality[ic].Data()),Form("hPhiPsi%02d_%s",ih+1,strCentrality[ic].Data()),200,0.0, 2.0*TMath::Pi());
+			hPhiPsiQ[ih][ic] = new TH1D(Form("hPhiPsiQ%02d_%s",ih+1,strCentrality[ic].Data()),Form("hPhiPsiQ%02d_%s",ih+1,strCentrality[ic].Data()),200,0.0, 2.0*TMath::Pi());
+			hDeltaPhi[ih][ic] = new TH1D(Form("hDeltaPhi%02d_%s",ih+1,strCentrality[ic].Data()),Form("hDeltaPhi%02d_%s",ih+1,strCentrality[ic].Data()),200,0.0, 2.0*TMath::Pi());
+			hResolution[ih][ic] = new TH1D(Form("hResolution%02d_%s",ih+1,strCentrality[ic].Data()),Form("hResolution%02d_%s",ih+1,strCentrality[ic].Data()),200,-100, 100);
+			hResolutionDist[ih][ic] = new TH1D(Form("hResolutionDist%02d_%s",ih+1,strCentrality[ic].Data()),Form("hResolutionDist%02d_%s",ih+1,strCentrality[ic].Data()),200,-10, 10);
+		}
+		
+		
 	}
 
-	//decided to first define option B, hence need to be finished
-	TH1D *hDeltaPhiSum[NC] = new TH1D(Form("hDeltaPhiSumCent%d",),"hDeltaPhiSum",200, 0.0, 2.0*TMath::Pi());
+	TH1D *hDeltaPhiSum[NC];
+	for (Int_t ic=0; ic<NC; ic++){
+		hDeltaPhiSum[ic] = new TH1D(Form("hDeltaPhiSum_%s",strCentrality[ic].Data()),Form("hDeltaPhiSum_%s",strCentrality[ic].Data()),200, 0.0, 2.0*TMath::Pi());
+	}
+	
 
 	for (Int_t iPhiEvt=0; iPhiEvt<NPhiHist; iPhiEvt++){
-		hPhiEvent[iPhiEvt] = new TH1D(Form("hPhiEvent%02d",(iPhiEvt+1)),Form("hPhiEvent%02d",(iPhiEvt+1)),100,0.0, 2.0*TMath::Pi());
+		for (Int_t ic=0; ic<NC; ic++){
+			hPhiEvent[iPhiEvt][ic] = new TH1D(Form("hPhiEvent%02d_%s",(iPhiEvt+1),strCentrality[ic].Data()),Form("hPhiEvent%02d_%s",(iPhiEvt+1),strCentrality[ic].Data()),100,0.0, 2.0*TMath::Pi());
+		}
 	}
 	int ieout = Nevt/20;
     if (ieout<1) ieout=1;
@@ -106,9 +114,9 @@ void toymc()
     	Double_t dice = centSamp->GetRandom();
     	Int_t Nch=0;
     	Int_t ic=0;
-    	if(dice>= 0.0 && dice<0.3){ ic=0;}
-    	if else(dice>=0.3 && dice<0.6){ic=1;}
-    	if else(dice){ic=2;}
+    	if(dice>= 0.0 && dice<0.3) ic=0;
+    	if(dice>=0.3 && dice<0.6) ic=1;
+    	if(dice>=0.6 && dice<=0.9) ic=2;
     	Nch=inputNch[ic];
 		//Get Psi for different harmonics
 		for (Int_t n=0; n<NH; n++) Psi_n[n]=uniform[n]->GetRandom();//harmonic loop
@@ -117,14 +125,14 @@ void toymc()
 		for (Int_t i=NH; i<2*NH; i++)fourier->SetParameter(i+1,Psi_n[i-NH]); //Setting the Psi parameters
 
 		//Initializing 
-		phiarray[Nch]={-999.0};
-		Double_t Qn_x[NH] = {0.0};//Should be 0 since we sum the qvectors
-		Double_t Qn_y[NH] = {0.0};//
-		TComplex QvectorsEP[NH];
+		Double_t phiarray[Nch]={0.0};
+		Double_t Qn_x[NH][NC] = {0.0};//Should be 0 since we sum the qvectors
+		Double_t Qn_y[NH][NC] = {0.0};//
+		TComplex QvectorsEP[NH][NC];
 		Double_t Psi_n_EP[NH]={0.0};
 		Double_t Psi_n_EPQ[NH]={0.0};
 		Double_t Resolution[NH]={0.0};
-    	for(int iH=0;iH<NH;iH++) QvectorsEP[iH] = TComplex(0,0);
+    	for(int iH=0;iH<NH;iH++) QvectorsEP[iH][ic] = TComplex(0,0);
 
     	
 	
@@ -133,21 +141,21 @@ void toymc()
 			phiarray[t] = fourier->GetRandom();
 
 			if(iEvent<NPhiHist) {
-				hPhiEvent[iEvent]->Fill(phiarray[t]);
+				hPhiEvent[iEvent][ic]->Fill(phiarray[t]);
 				fourier->Write(Form("fourier%02d",iEvent));
 			}
 			
 			//Harmonic loop
 			for (Int_t n=0; n<NH; n++)
 			{
-				hPhiPsi[n]->Fill(DeltaPhi(phiarray[t],Psi_n[n]));
-				vn_psi[n] = TMath::Cos((n+1)*(DeltaPhi(phiarray[t], Psi_n[n]))); //Change to symmetry plane
-				hEventPlane[n]->Fill(vn_psi[n]);
+				hPhiPsi[n][ic]->Fill(DeltaPhi(phiarray[t],Psi_n[n]));
+				vn_psi[n][ic] = TMath::Cos((n+1)*(DeltaPhi(phiarray[t], Psi_n[n]))); //Change to symmetry plane
+				hEventPlane[n][ic]->Fill(vn_psi[n][ic]);
 				
 				// calculating eventplane with Q-vectors
-				Qn_x[n] += weight*TMath::Cos((n+1)*phiarray[t]);
-				Qn_y[n] += weight*TMath::Sin((n+1)*phiarray[t]);
-				QvectorsEP[n] += TComplex(TMath::Cos((n+1)*phiarray[t]),TMath::Sin((n+1)*phiarray[t]));
+				Qn_x[n][ic] += weight*TMath::Cos((n+1)*phiarray[t]);
+				Qn_y[n][ic] += weight*TMath::Sin((n+1)*phiarray[t]);
+				QvectorsEP[n][ic] += TComplex(TMath::Cos((n+1)*phiarray[t]),TMath::Sin((n+1)*phiarray[t]));
 			}
 
 		}//End of track loop
@@ -160,15 +168,15 @@ void toymc()
 		for (Int_t i=0; i<Nch; i++){
 			//Evenplane method calculated vn
 			for (Int_t n=0; n<NH; n++) {
-				hEventPlaneEP[n]->Fill(TMath::Cos((n+1)*(DeltaPhi(phiarray[i], Psi_n_EP[n])))); 
-				hPhiPsiQ[n]->Fill(DeltaPhi(phiarray[i], Psi_n_EP[n]));
+				hEventPlaneEP[n][ic]->Fill(TMath::Cos((n+1)*(DeltaPhi(phiarray[i], Psi_n_EP[n])))); 
+				hPhiPsiQ[n][ic]->Fill(DeltaPhi(phiarray[i], Psi_n_EP[n]));
 			}
 			for (Int_t j=0; j<Nch;j++){
 				if(i==j) continue;
-				hDeltaPhiSum->Fill(DeltaPhi(phiarray[i], phiarray[j]));//For fitting
+				hDeltaPhiSum[ic]->Fill(DeltaPhi(phiarray[i], phiarray[j]));//For fitting
 				for (Int_t n=0; n<NH; n++){
-					vn_phi[n] = TMath::Cos((n+1)*(DeltaPhi(phiarray[i], phiarray[j])));//Analytic solution
-					hTwoParticle[n]->Fill(vn_phi[n]);
+					vn_phi[n][ic] = TMath::Cos((n+1)*(DeltaPhi(phiarray[i], phiarray[j])));//Analytic solution
+					hTwoParticle[n][ic]->Fill(vn_phi[n][ic]);
 
 				}
 			}		
@@ -177,10 +185,10 @@ void toymc()
 		//Resolution for every event
 		for (Int_t n=0; n<NH; n++)
 		{
-			Resolution[n] = TMath::Cos((n+1)*(DeltaPhi(Psi_n[n], Psi_n_EP[n]))); //Analystical resultion
+			Resolution[n][ic] = TMath::Cos((n+1)*(DeltaPhi(Psi_n[n], Psi_n_EP[n]))); //Analystical resultion
 			//if(n==1) cout <<  Form("n=%d,psi=%.3f, %.3f, %.3f",n,Psi_n[n], Psi_n_EP[n], Psi_n_EPQ[n]) << endl;
-			hResolution[n]->Fill(Resolution[n]);
-			hResolutionDist[n]->Fill(DeltaPhi(Psi_n[n], Psi_n_EP[n]));
+			hResolution[n][ic]->Fill(Resolution[n][ic]);
+			hResolutionDist[n][ic]->Fill(DeltaPhi(Psi_n[n], Psi_n_EP[n]));
 		}
 		
 	}// End of event loop
@@ -190,21 +198,24 @@ void toymc()
 	// Calculating the avarage over event
 	for (Int_t n=0; n<NH; n++)
 	{
-		MeanArrayTwoParticle[n]=hTwoParticle[n]->GetMean();
-		MeanArrayTwoPartError[n]=hTwoParticle[n]->GetMeanError()/((n+1)*MeanArrayTwoParticle[n]);
-		MeanArrayEventPlane[n]=hEventPlane[n]->GetMean();
-		MeanArrayEvtPlError[n]=hEventPlane[n]->GetMeanError();
-		MeanArrayEventPlaneQVec[n]=hEventPlaneEP[n]->GetMean();
-		MeanArrayEvtPlErrorQvec[n]=hEventPlaneEP[n]->GetMeanError();
-		MeanArrayResolution[n]=hResolution[n]->GetMean();
-		MeanArrayResolutionError[n]=hResolution[n]->GetMeanError();
+		for (Int_t ic=0; ic<NC; ic++){
+			MeanArrayTwoParticle[n][ic]=hTwoParticle[n][ic]->GetMean();
+			MeanArrayTwoPartError[n][ic]=hTwoParticle[n][ic]->GetMeanError()/((n+1)*MeanArrayTwoParticle[n][ic]);
+			MeanArrayEventPlane[n][ic]=hEventPlane[n][ic]->GetMean();
+			MeanArrayEvtPlError[n][ic]=hEventPlane[n][ic]->GetMeanError();
+			MeanArrayEventPlaneQVec[n][ic]=hEventPlaneEP[n][ic]->GetMean();
+			MeanArrayEvtPlErrorQvec[n][ic]=hEventPlaneEP[n][ic]->GetMeanError();
+			MeanArrayResolution[n][ic]=hResolution[n][ic]->GetMean();
+			MeanArrayResolutionError[n][ic]=hResolution[n][ic]->GetMeanError();
 
 
 
-		vn_TwoPart[n]=TMath::Sqrt(TMath::Abs(MeanArrayTwoParticle[n]));
-		vn_EvtPl[n]=MeanArrayEventPlane[n];
-		vn_EvtPlQvec[n]=MeanArrayEventPlaneQVec[n]/MeanArrayResolution[n];
-		vn_obs_ERROR[n]=TMath::Power(((1/MeanArrayResolution[n])*MeanArrayEvtPlErrorQvec[n]),2)+TMath::Power(((MeanArrayEventPlaneQVec[n]/TMath::Power(MeanArrayResolution[n],2))*MeanArrayResolutionError[n]),2);
+			vn_TwoPart[n][ic]=TMath::Sqrt(TMath::Abs(MeanArrayTwoParticle[n][ic]));
+			vn_EvtPl[n][ic]=MeanArrayEventPlane[n][ic];
+			vn_EvtPlQvec[n][ic]=MeanArrayEventPlaneQVec[n][ic]/MeanArrayResolution[n][ic];
+			vn_obs_ERROR[n][ic]=TMath::Power(((1/MeanArrayResolution[n][ic])*MeanArrayEvtPlErrorQvec[n][ic]),2)+TMath::Power(((MeanArrayEventPlaneQVec[n][ic]/TMath::Power(MeanArrayResolution[n][ic],2))*MeanArrayResolutionError[n][ic]),2);	
+		}
+
 	}
 
 	
@@ -212,7 +223,7 @@ void toymc()
 	output->Close();
 
 	timer.Print();
-
+/*
 	std::cout << center("harmonic",10)   << " | "
           << center("input",10)     << " | "
           << center("vn{Psi_n}",20) << " | "
@@ -230,7 +241,7 @@ void toymc()
               		<< prd(vn_EvtPl[n],5,9)     << " +-"<<prd(MeanArrayEvtPlError[n],5,9)    << " | "
               		<< prd(vn_EvtPlQvec[n],5,9) << " +-"<<prd(vn_obs_ERROR[n],5,9)           << " | "
               		<< prd(vn_TwoPart[n],5,9)   << " +-"<<prd(MeanArrayTwoPartError[n],5,9)  << " | "
-              		<< prd(/*vn_fit[n]*/0,5,10)       << " | "
+              	
               		<< prd(MeanArrayResolution[n],5,10)   <<  " +-"<<prd(MeanArrayResolutionError[n],5,9)  <<"\n";
 		}	
 
@@ -251,10 +262,10 @@ void toymc()
               		<< prd((TMath::Abs(vn[n] - vn_EvtPl[n])-MeanArrayEvtPlError[n] ),5,9) << " | "
               		<< prd((TMath::Abs(vn[n] - vn_EvtPlQvec[n])-vn_obs_ERROR[n]),5,9) << " | "
               		<< prd((TMath::Abs(vn[n] - vn_TwoPart[n])-MeanArrayTwoPartError[n]),5,9) << " | "
-              		<< prd(/*vn_fit[n]*/0,5,10)       << " | "
+
               		<< prd(MeanArrayResolution[n],5,10)   <<  " +-"<<prd(MeanArrayResolutionError[n],5,9)  <<"\n";
 		}
-
+*/
 }
 
 ///////////////////////////////////////////////////////
