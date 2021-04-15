@@ -7,7 +7,6 @@
 #include "TROOT.h"
 #include "TGraphErrors.h"
 #include "TFile.h"
-#include "TRatioPlot.h"
 #include "TString.h"
 #include <TStopwatch.h>
 #include <TComplex.h>
