@@ -4,6 +4,7 @@
 #include "TLegend.h"
 #include "TRandom3.h"
 #include "TH1.h"
+#include "TROOT.h"
 #include "TFile.h"
 #include "TRatioPlot.h"
 #include "TString.h"
@@ -11,15 +12,31 @@
 #include <TComplex.h>
 #include "toyflowinputs.h"
 
+using namespace std;
 std::string prd(const double x, const int decDigits, const int width);
 std::string center(const string s, const int w);
 double DeltaPhi(double phi1, double phi2); // relative angle
 
-void toymc()
+int main(int argc, char **argv)
 {
+
+    TROOT root("flow","run mc");
+
+    if ( argc<3 ) {
+                cout<<"+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"<<endl;
+                cout<<"+  "<<argv[0]<<" <outputFile> <Nevt> <random seed> "<<endl;
+                cout << endl << endl;
+                exit(1);
+    }
+
+    // CONSTANT
+    char *outFile = argv[1];
+    Int_t Nevt= atoi(argv[2]);
+    Int_t random_seed = atoi(argv[3]);
+    TRandom *myRandom = new TRandom(random_seed);
 	// Declare variables
 	cout<< strCentrality[0]<<endl;
-	Int_t Nevt = 10000;
+
 	Int_t NPhiHist = 10;
 	Double_t Psi_n[NH]={0.0};
 	Double_t vn_psi[NH][NC]={0.0};
@@ -41,11 +58,7 @@ void toymc()
 	Double_t vn_EvtPl[NH][NC]={0.0};
 	Double_t vn_EvtPlQvec[NH][NC]={0.0};
 
-
-
-	
-	TString outfile = "output.root";
-	TFile *output = new TFile(outfile,"recreate");
+	TFile *output = new TFile(outFile,"recreate");
 	output->cd();
 	
 	//Define uniform function for option B
