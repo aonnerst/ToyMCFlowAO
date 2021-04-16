@@ -12,21 +12,22 @@
 #include <TComplex.h>
 #include <vector>
 #include "../include/toyflowinputs.h"
+#include "../include/rootcommon.h"
 
 using namespace std;
 
 Int_t gMarkers[]= {20,24,21,25,22,26,23,27,32,28};
 Int_t gColors[]={kRed+1, kOrange+2, kCyan+2, kSpring-6, kRed-7, kOrange+1,kCyan-6,kGreen+7,kRed-9,kOrange-9,kAzure+6,kGreen-9};
 Int_t gStyles[]={1,2,3,4,5,6,7,8,9,10};
-const Int_t NPhiHist = 10;
-TF1 *fourier[NPhiHist];
+const Int_t NPhiHist = 12;
+TF1 *fourier[NPhiHist][NC];
 TH1D *hPhiEvent[NPhiHist][NC];
 void LoadData(TString);
 void DrawEbyE(int);
 
 
 //Main Loop
-void PhiEventByEvent(TString infile="output.root")
+void PhiEventByEvent(TString infile="../output/toymcflowao_1d0eb42_100.root")
 {
     LoadData(infile);
 //for loop of centrality
@@ -39,14 +40,11 @@ void LoadData(TString inputname)
 {
     TFile *fIn = TFile::Open(inputname,"read");
 
-        for (Int_t i=0; i<=(NPhiHist-1); i++){
-        fourier[i] = (TF1*)fIn->Get(Form("fourier%02d;1000",i));
-        fourier[i] -> SetParameter(0,10);
-    }
-
     for (Int_t i=0; i<=(NPhiHist-1); i++){
         for (Int_t ic=0; ic<NC; ic++){
-            hPhiEvent[i][ic]=(TH1D*)fIn->Get(Form("hPhiEvent_C%02d_%02d",ic,i+1));
+            fourier[i][ic] = (TF1*)fIn->Get(Form("fourierC%02d_E%02d",ic,i+1));
+            fourier[i][ic] -> SetParameter(0,10);
+            hPhiEvent[i][ic]=(TH1D*)fIn->Get(Form("hPhiEvent_C%02d_E%02d",ic,i+1));
         }
     }
 
@@ -70,9 +68,9 @@ void DrawEbyE(int ic=0){
         hPhiEvent[i][ic]->Draw("esame");
         hPhiEvent[i][ic]->SetLineColor(gColors[i]);
         hPhiEvent[i][ic]->SetLineWidth(1);
-        fourier[i]->SetLineColor(gColors[i]);
-        fourier[i]->Draw("same");
-        legendPhi[ic]->AddEntry(hPhiEvent[i][ic],Form("Event %d",i+1));
+        fourier[i][ic]->SetLineColor(gColors[i]);
+        fourier[i][ic]->Draw("same");
+        legendPhi->AddEntry(hPhiEvent[i][ic],Form("Event %d",i+1));
     }
     legendPhi -> Draw("same");
     gPad->GetCanvas()->SaveAs(Form("figs/PhiEventByEventC%02d.pdf",ic));
