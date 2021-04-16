@@ -37,7 +37,7 @@ int main(int argc, char **argv)
 	// Declare variables
 	cout<< strCentrality[0]<<endl;
 
-	Int_t NPhiHist = 10;
+	Int_t NPhiHist = 12;
 	Double_t Psi_n[NH]={0.0};
 	Double_t vn_psi[NH][NC]={{0.}};
 	Double_t vn_obs_EP[NH][NC]={{0.}};
@@ -103,7 +103,7 @@ int main(int argc, char **argv)
 
 	for (Int_t iPhiEvt=0; iPhiEvt<NPhiHist; iPhiEvt++){
 		for (Int_t ic=0; ic<NC; ic++){
-			hPhiEvent[iPhiEvt][ic] = new TH1D(Form("hPhiEvent_C%02d_%02d",ic,(iPhiEvt+1)),Form("Event=%02d,%s",(iPhiEvt+1),strCentrality[ic].Data()),100,0.0, 2.0*TMath::Pi());
+			hPhiEvent[iPhiEvt][ic] = new TH1D(Form("hPhiEvent_C%02d_E%02d",ic,(iPhiEvt+1)),Form("Event=%02d,%s",(iPhiEvt+1),strCentrality[ic].Data()),100,0.0, 2.0*TMath::Pi());
 		}
 	}
 	int ieout = Nevt/20;
@@ -129,6 +129,7 @@ int main(int argc, char **argv)
 		for (Int_t i=0; i<NH-1; i++)fourier->SetParameter(i+1,inputVn[i][ic]); //Setting the vn parameters
 		for (Int_t i=NH; i<2*NH; i++)fourier->SetParameter(i+1,Psi_n[i-NH]); //Setting the Psi parameters
 
+		if(iEvent<NPhiHist)fourier->Write(Form("fourierC%02d_E%02d",ic,iEvent));
 		//Initializing 
 		Double_t Qn_x[NH] = {0.0};//Should be 0 since we sum the qvectors
 		Double_t Qn_y[NH] = {0.0};//
@@ -145,7 +146,6 @@ int main(int argc, char **argv)
 			phiarray.push_back(fourier->GetRandom());
 			if(iEvent<NPhiHist) {
 				hPhiEvent[iEvent][ic]->Fill(phiarray[t]);
-				fourier->Write(Form("fourier%02d",iEvent));
 			}
 			
 			//Harmonic loop
