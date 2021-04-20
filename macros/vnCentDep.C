@@ -53,8 +53,9 @@ void LoadData(TString inputname)
 	}
 	for(int i=0; i<2; i++){
 		for (int ih=0; ih<NH; ih++){
-			//cout<< Form("gr_fit%s_H%02d_cent", gr_FitNames[i].Data(),ih+1)<<endl;
+			cout<< Form("gr_fit%s_H%02d_cent", gr_FitNames[i].Data(),ih+1)<<endl;
 			gr_vnFit_cent[i][ih]=(TGraphErrors*)fext[i]->Get(Form("gr_fit%s_H%02d_cent", gr_FitNames[i].Data(),ih+1));
+			gr_vnFit_cent[i][ih]->Print();
 		}
 	}
 }
@@ -64,35 +65,35 @@ void DrawVnCent()
 	gStyle->SetOptStat(0);
 	TCanvas *can = new TCanvas("C","canvas",1024,740);
 	can->SetLeftMargin(0.15);
-   	can->SetBottomMargin(0.15);
+	can->SetBottomMargin(0.15);
 	can->SetFillStyle(4000);
 	TLegend *legend = new TLegend(0.5,0.6,0.8,0.85,"","brNDC");
-    legend->SetTextSize(0.04);legend->SetBorderSize(0);legend->SetFillStyle(0);//legend settings;
+	legend->SetTextSize(0.04);legend->SetBorderSize(0);legend->SetFillStyle(0);//legend settings;
 	double lowx = -0.5,highx=2.5;
-  	double ly=-0.01,hy=0.5;
-  	TH2F *hfr = new TH2F("hfr"," ", 100,lowx, highx, 10, ly, hy); // numbers: tics x, low limit x, upper limit x, tics y, low limit y, upper limit y
-  	hset( *hfr, "Centrality %", "v_{n}",0.7,0.7, 0.07,0.07, 0.01,0.01, 0.03,0.03, 510,505);//settings of the upper pad: x-axis, y-axis
-  	hfr->Draw();
+	double ly=-0.01,hy=0.4;
+	TH2F *hfr = new TH2F("hfr"," ", 100,lowx, highx, 10, ly, hy); // numbers: tics x, low limit x, upper limit x, tics y, low limit y, upper limit y
+	hset( *hfr, "Centrality %", "v_{n}",0.7,0.7, 0.07,0.07, 0.01,0.01, 0.03,0.03, 510,505);//settings of the upper pad: x-axis, y-axis
+	hfr->Draw();
 
-  	for(int i=0; i<NMethod; i++){
-  		for(int ih=1; ih<NH; ih++){
-  			gr_vn_cent[i][ih]->SetLineColor(gColors[ih]);
-  			gr_vn_cent[i][ih]->SetMarkerStyle(gMarkers[i]);
-  			gr_vn_cent[i][ih]->SetMarkerColor(gColors[ih]);
-  			gr_vn_cent[i][ih]->Draw("lpsame");
-  			legend->AddEntry(gr_vn_cent[i][ih],Form("n=%d %s", ih+1, gr_Names[i].Data()));
-  		}
-  	}
-  	for(int i=0; i<3; i++){
-  		for(int ih=1; ih<NH; ih++){
-  			cout << Form("n=%02d, FitMethod=%02d", ih, i)<<endl;
-  			gr_vnFit_cent[i][ih]->SetLineColor(gColors[i]);
-  			gr_vnFit_cent[i][ih]->SetMarkerStyle(gMarkers[i]);
-  			gr_vnFit_cent[i][ih]->SetMarkerColor(gColors[i]);
-  			gr_vnFit_cent[i][ih]->Draw("lpsame");
-  			legend->AddEntry(gr_vnFit_cent[i][ih],Form("n=%d %s", ih+1, gr_FitNames[i].Data()));
-  		}
-  	}
-  	legend -> Draw("same");
-   	gPad->GetCanvas()->SaveAs("../figs/CentDep.pdf");
+	for(int i=0; i<NMethod-1; i++){
+		for(int ih=1; ih<NH; ih++){
+			gr_vn_cent[i][ih]->SetLineColor(gColors[ih]);
+			gr_vn_cent[i][ih]->SetMarkerStyle(gMarkers[i]);
+			gr_vn_cent[i][ih]->SetMarkerColor(gColors[ih]);
+			gr_vn_cent[i][ih]->Draw("lpsame");
+			legend->AddEntry(gr_vn_cent[i][ih],Form("n=%d %s", ih+1, gr_Names[i].Data()));
+		}
+	}
+	for(int i=0; i<2; i++){
+		for(int ih=1; ih<NH; ih++){
+			cout << Form("n=%02d, FitMethod=%02d", ih, i)<<endl;
+			gr_vnFit_cent[i][ih]->SetLineColor(gColors[i]);
+			gr_vnFit_cent[i][ih]->SetMarkerStyle(gMarkers[i]);
+			gr_vnFit_cent[i][ih]->SetMarkerColor(gColors[i]);
+			gr_vnFit_cent[i][ih]->Draw("lpsame");
+			legend->AddEntry(gr_vnFit_cent[i][ih],Form("n=%d %s", ih+1, gr_FitNames[i].Data()));
+		}
+	}
+	legend -> Draw("same");
+	gPad->GetCanvas()->SaveAs("../figs/CentDep.pdf");
 }

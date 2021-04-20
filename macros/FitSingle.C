@@ -42,7 +42,7 @@ void FitSingle(TString infile="../output/toymcflowao_1d0eb42_10k.root")
 void LoadData(TString inputname)
 {
 	TFile *fIn = TFile::Open(inputname,"read");
-	for(int ih=0; ih<NH; ih++){
+	for(int ih=1; ih<=NH; ih++){
 		for(int ic=0; ic<NC; ic++){
 			hPhiPsi[ih][ic]=(TH1D*)fIn->Get(Form("hPhiPsiC%02dH%02d",ic,ih+1));
 			hPhiPsi[ih][ic]->Rebin(4);
@@ -53,14 +53,14 @@ void LoadData(TString inputname)
 
 void FitDrawPhi(int ic=0)
 {
-	for (Int_t ih=1; ih<NH; ih++){
+	for (Int_t ih=1; ih<=NH; ih++){
 		TString formula = Form("[0]*(1 + 2*[1]*TMath::Cos(%d*x))",ih+1);
 		fFit[ih][ic] = new TF1(Form("fFitH%02d_C%02d",ih+1,ic), formula,0, 2.0*TMath::Pi());
 		fFit[ih][ic]->SetParameter(0,1E4);
 		fFit[ih][ic]->SetParameter(ih+1,inputVn[ih][ic]);
 	}
-	for (Int_t ih=1; ih<NH; ih++) hPhiPsi[ih][ic]->Fit(fFit[ih][ic]->GetName());
-	for (Int_t ih=1; ih<NH; ih++){
+	for (Int_t ih=1; ih<=NH; ih++) hPhiPsi[ih][ic]->Fit(fFit[ih][ic]->GetName());
+	for (Int_t ih=1; ih<=NH; ih++){
 		vn[ih][ic]=fFit[ih][ic]->GetParameter(1);
 		vnError[ih][ic]=fFit[ih][ic]->GetParError(1);
 	}	
