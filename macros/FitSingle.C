@@ -45,21 +45,17 @@ void LoadData(TString inputname)
 	for(int ih=1; ih<=NH; ih++){
 		for(int ic=0; ic<NC; ic++){
 			hPhiPsi[ih][ic]=(TH1D*)fIn->Get(Form("hPhiPsiC%02dH%02d",ic,ih));
-			cout << " ok 1!" << endl;
 			hPhiPsi[ih][ic]->Rebin(4);
-			cout << "ok 2!" << endl;
 		}
-		cout << "ok 3!" << endl;
 	}
 
 }
 
 void FitDrawPhi(int ic=0)
 {	
-	cout<< "ok 4!" << endl;
 	for (Int_t ih=1; ih<=NH; ih++){
 		TString formula = Form("[0]*(1 + 2*[1]*TMath::Cos(%d*x))",ih);
-		fFit[ih][ic] = new TF1(Form("fFitH%02d_C%02d",ih+1,ic), formula,0, 2.0*TMath::Pi());
+		fFit[ih][ic] = new TF1(Form("fFitH%02d_C%02d",ih,ic), formula,0, 2.0*TMath::Pi());
 		fFit[ih][ic]->SetParameter(0,1E4);
 		fFit[ih][ic]->SetParameter(ih,inputVn[ih][ic]);
 	}
@@ -71,19 +67,18 @@ void FitDrawPhi(int ic=0)
 
 
 	gStyle->SetOptStat(0);
-	TCanvas *can = new TCanvas("canvas","canvas",1024,740);
+	TCanvas *can = new TCanvas("C2","canvas",1024,740);
 	
 	can->SetFillStyle(4000);
 	can->SetLeftMargin(0.15);
    	can->SetBottomMargin(0.15);
-   	//can->SetTitle(Form("Cent%02d",ic));
-
+   	
    	//For editing canvas #include "include/rootcommon.h"
    	double lowx = 0.,highx=2*TMath::Pi();
   	//double ly=hDeltaPhiSum[ic]->GetMinimum()*0.99,hy=hDeltaPhiSum[ic]->GetMaximum()*1.01;
   	Double_t ly = 8500, hy=16500;
   	TH2F *hfr = new TH2F("hfr"," ", 100,lowx, highx, 10, ly, hy); // numbers: tics x, low limit x, upper limit x, tics y, low limit y, upper limit y
-  	hset( *hfr, "#Delta#phi=#phi-#psi_{n}", "dN/d#Delta#phi",0.9,0.9, 0.05,0.05, 0.01,0.01, 0.03,0.03, 510,505);//settings of the upper pad: x-axis, y-axis
+  	hset( *hfr, "#Delta#phi=#phi-#psi_{n}", "dN/d#Delta#phi",0.9,0.9, 0.15,0.05, 0.01,0.01, 0.03,0.03, 510,505);//settings of the upper pad: x-axis, y-axis
   	hfr->Draw();
   	TLegend *legend = new TLegend(0.5,0.6,0.8,0.85,"","brNDC");
     legend->SetTextSize(0.04);legend->SetBorderSize(0);legend->SetFillStyle(0);//legend settings;
