@@ -12,6 +12,7 @@
 #include <TComplex.h>
 #include <vector>
 #include "../include/toyflowinputs.h"
+#include "../include/rootcommon.h"
 
 using namespace std;
 
@@ -24,16 +25,17 @@ TF1 *fFit[NH][NC];
 Double_t vn[NH][NC]={{-999}};
 Double_t vnError[NH][NC]={{-999}};
 
+
 void LoadData(TString);
-void FitData(int);
-void DrawPhiPsi(int);
+void FitDrawPhi(int);
+void SaveVns();
 
 //-----------Main Function------------------
-void FitSingle(TString infile="output.root")
+void FitSingle(TString infile="../output/toymcflowao_1d0eb42_10k.root")
 {
 	LoadData(infile);
-	for (int ic=0; ic<NC; ic++)FitData(ic); // for loop over centrality!!
-    for (int ic=0; ic<NC; ic++)DrawEbyE(ic);
+	for (int ic=0; ic<NC; ic++)FitDrawPhi(ic);
+	SaveVns();
 }
 
 //-------Member Functions-----------------
@@ -49,10 +51,10 @@ void LoadData(TString inputname)
 
 }
 
-void FitData(int ic=0)
+void FitDrawPhi(int ic=0)
 {
 	for (Int_t ih=1; ih<NH; ih++){
-		TString formula = Form("[0]*(1 + 2*[1]*TMath::Cos(%d*x))",n+1);
+		TString formula = Form("[0]*(1 + 2*[1]*TMath::Cos(%d*x))",ih+1);
 		fFit[ih][ic] = new TF1(Form("fFitH%02d_C%02d",ih+1,ic), formula,0, 2.0*TMath::Pi());
 		fFit[ih][ic]->SetParameter(0,1E4);
 		fFit[ih][ic]->SetParameter(ih+1,inputVn[ih][ic]);
@@ -62,10 +64,7 @@ void FitData(int ic=0)
 		vn[ih][ic]=fFit[ih][ic]->GetParameter(1);
 		vnError[ih][ic]=fFit[ih][ic]->GetParError(1);
 	}	
-}
-
-void DrawPhiPsi(int ic=0)
-{
+	
 	TCanvas *can = new TCanvas("canvas","canvas",1024,740);
 	gStyle->SetOptStat(0);
 	TLegend *legend = new TLegend(0.5,0.6,0.8,0.85,"","brNDC");
@@ -73,15 +72,18 @@ void DrawPhiPsi(int ic=0)
 	can->SetFillStyle(4000);
 	can->SetLeftMargin(0.15);
    	can->SetBottomMargin(0.15);
+   	can->SetTitle(Form("Cent%02d",ic));
 
    	//For editing canvas #include "include/rootcommon.h"
 	Double_t lowx = 0.,highx=2*TMath::Pi();
-  	Double_t ly=hPhiPsi[1]->GetMinimum()*0.99,hy=hPhiPsi[1]->GetMaximum()*1.01;
-  	TH2F *hfr = new TH2F("hfr"," ", 100,lowx, highx, 10, ly, hy); // numbers: tics x, low limit x, upper limit x, tics y, low limit y, upper limit y
+  	Double_t ly=hPhiPsi[1][ic]->GetMinimum()*0.99,hy=hPhiPsi[1][ic]->GetMaximum()*1.01;
+  	TH2F *hfr = new TH2F("hfr",Form("Cent%02d",ic) , 100,lowx, highx, 10, ly, hy); // numbers: tics x, low limit x, upper limit x, tics y, low limit y, upper limit y
   	hset( *hfr, "#Delta#phi=#phi-#psi_{n}", "dN/d#Delta#phi",0.9,0.9, 0.05,0.05, 0.01,0.01, 0.03,0.03, 510,505);//settings of the upper pad: x-axis, y-axis
   	hfr->Draw();
 
-  	for(int ih=0; ih<NH; ih++){
+  	for(int ih=1; ih<NH; ih++){
+  		cout << ih << endl;
+  		hPhiPsi[ih][ic]->SetTitle(Form("Cent%02d",ic));
   		hPhiPsi[ih][ic]->SetMarkerStyle(20);
 		hPhiPsi[ih][ic]->SetMarkerColor(gColors[ih]);
 		hPhiPsi[ih][ic]->Draw("psame");
@@ -90,5 +92,16 @@ void DrawPhiPsi(int ic=0)
 		legend->AddEntry(fFit[ih][ic],Form("n = %d, v_n = %.3f #pm %.4f ",ih+1, vn[ih][ic], vnError[ih][ic]),"l");
   	}
   	legend->Draw();
-	gPad->GetCanvas()->SaveAs("figs/SingleParticle_C%02d.pdf",ic);
+	gPad->GetCanvas()->SaveAs(Form("../figs/SingleParticle_C%02d.pdf",ic));
+}
+void SaveVns()
+{
+	double Cent[NC] = {0.,1.,2.};
+	double eCent[NC] = {0.,0.,0.};
+	TGraphErrors *gr_fitsingle[NH];
+	for(int ih=1; ih<NH; ih++)gr_fitsingle[ih]= new TGraphErrors(NC,Cent,vn[ih],eCent,vnError[ih]);
+	TFile *output = new TFile("out_VnFitSingle.root", "recreate");
+	for(int ih=1; ih<NH; ih++)gr_fitsingle[ih]->Write(Form("gr_fitsingle_H%02d_cent",ih));
+	output->Write();
+	output->Close();
 }

@@ -27,7 +27,7 @@ void DrawEbyE(int);
 
 
 //Main Loop
-void PhiEventByEvent(TString infile="../output/toymcflowao_1d0eb42_100.root")
+void PhiEventByEvent(TString infile="../output/toymcflowao_1d0eb42_10k.root")
 {
     LoadData(infile);
 //for loop of centrality
@@ -39,15 +39,16 @@ void PhiEventByEvent(TString infile="../output/toymcflowao_1d0eb42_100.root")
 void LoadData(TString inputname)
 {
     TFile *fIn = TFile::Open(inputname,"read");
+    fIn->Print();
 
     for (Int_t i=0; i<=(NPhiHist-1); i++){
         for (Int_t ic=0; ic<NC; ic++){
-            fourier[i][ic] = (TF1*)fIn->Get(Form("fourierC%02d_E%02d",ic,i+1));
+            cout<<Form("fourierC%02d_E%02d",ic,i+1)<<endl;
+            fourier[i][ic] = (TF1*)fIn->Get(Form("fourierC%02d_E%02d",ic,i));
             fourier[i][ic] -> SetParameter(0,10);
             hPhiEvent[i][ic]=(TH1D*)fIn->Get(Form("hPhiEvent_C%02d_E%02d",ic,i+1));
         }
     }
-
 }
 
 
@@ -59,7 +60,7 @@ void DrawEbyE(int ic=0){
     legendPhi->SetTextSize(0.04);legendPhi->SetBorderSize(0);legendPhi->SetFillStyle(0);//legend settings;
 
     double lowx = 0.,highx=2*TMath::Pi();
-    double ly=hPhiEvent[0][0]->GetMinimum()*0.1,hy=hPhiEvent[0][0]->GetMaximum()*1.4;
+    double ly=hPhiEvent[0][ic]->GetMinimum()*0.1,hy=hPhiEvent[0][ic]->GetMaximum()*1.4;
     TH2F *hfr = new TH2F("hfr"," ", 100,lowx, highx, 10, ly, hy); // numbers: tics x, low limit x, upper limit x, tics y, low limit y, upper limit y
     hset( *hfr, "#phi", "dN/d#phi",0.45,0.45, 0.07,0.07, 0.01,0.01, 0.03,0.03, 510,505);//settings of the upper pad: x-axis, y-axis
     hfr->Draw();

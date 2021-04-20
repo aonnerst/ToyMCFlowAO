@@ -23,15 +23,17 @@ Int_t gStyles[]={1,2,3,4,5,6,7,8,9,10};
 TH1D *hDeltaPhiSum[NC];
 Double_t vn[NH][NC]={-999};
 Double_t vnError[NH][NC]={-999};
-void LoadData();
-void FitData();
-void DrawTwoPArt();
 
-void FitTwoPart(TString infile="output.root")
+void LoadData(TString);
+void FitDrawTwo(int);
+void SaveVns();
+
+void FitTwoPart(TString infile="../output/toymcflowao_1d0eb42_10k.root")
 {
-	LoadData();
+	LoadData(infile);
 	//Functions below should be in a for loop over NC
-	FitDrawTwo();
+	for(Int_t ic=0; ic<NC; ic++) FitDrawTwo(ic);
+	SaveVns();
 }
 //-------Member functions------------
 void LoadData(TString inputname)
@@ -46,14 +48,16 @@ void LoadData(TString inputname)
 
 void FitDrawTwo(int ic=0)
 {
-	TF1 *fFit = new TF1("fFit", "[0]*(1+2*TMath::Power([1],2)*TMath::Cos(1*x) + 2*TMath::Power([2],2)*TMath::Cos(2*x) + 2*TMath::Power([3],2)*TMath::Cos(3*x) + 2*TMath::Power([4],2)*TMath::Cos(4*x) + 2*TMath::Power([5],2)*TMath::Cos(5*x))", 0, 2.0*TMath::Pi());
+	TString ParName[NH+1]={"const","v_1","v_2","v_3","v_4","v_5","v_6","v_7"};
+	TString strformula = "[0]*(1";
+	for (Int_t ih=0; ih<NH; ih++){
+		strformula += Form("+2*TMath::Power([%d],2)*TMath::Cos(%d*x)",ih+1,ih+1);
+	}
+	strformula+=")";
+	TF1 *fFit = new TF1("fFit", strformula, 0, 2.0*TMath::Pi());
 	fFit->SetParameter(0,1E4);
-	fFit->SetParameter(1,0);
-	fFit->SetParameter(2,0.10);
-	fFit->SetParameter(3,0.06);
-	fFit->SetParameter(4,0.06);
-	fFit->SetParameter(5,0.06);
-	fFit->SetParNames("const","v1","v_2","v_3","v_4","v_5");
+	for (Int_t i=1; i<NH; i++) fFit->SetParameter(i,0.06);
+	for (Int_t i=0; i<NH+1; i++) fFit->SetParName(i,ParName[i]);
 	TF1 *fFitvn[NH];
 
 	gStyle->SetOptStat(0);
@@ -65,7 +69,7 @@ void FitDrawTwo(int ic=0)
 
 	double lowx = 0.,highx=2*TMath::Pi();
   	double ly=hDeltaPhiSum[ic]->GetMinimum()*0.99,hy=hDeltaPhiSum[ic]->GetMaximum()*1.01;
-  	TH2F *hfr = new TH2F("hfr"," ", 100,lowx, highx, 10, ly, hy); // numbers: tics x, low limit x, upper limit x, tics y, low limit y, upper limit y
+  	TH2F *hfr = new TH2F("hfr",Form("Cent%02d",ic), 100,lowx, highx, 10, ly, hy); // numbers: tics x, low limit x, upper limit x, tics y, low limit y, upper limit y
   	hset( *hfr, "#Delta#phi=#phi_{1}-#phi_{2}", "dN/d#Delta#phi",0.9,0.9, 0.05,0.05, 0.01,0.01, 0.03,0.03, 510,505);//settings of the upper pad: x-axis, y-axis
   	hfr->Draw();
   	
@@ -74,13 +78,10 @@ void FitDrawTwo(int ic=0)
 	fFit->SetLineColor(1);
 	fFit->Draw("same");
 
-	/*fourier->SetLineColor(kRed);
-	fourier->SetLineStyle(10);
-	fourier->Draw("same");*/
     
     for (Int_t n=0; n<=(NH-1); n++){
     	TString formula = Form("[0]*(1 + 2*TMath::Power([1],2)*TMath::Cos(%d*x))",n+1);
-		fFitvn[n]= new TF1(Form("fFitvn%02d",n+1),formula, 0, 2.0*TMath::Pi());//Jus for drawing
+		fFitvn[n]= new TF1(Form("fFitvn%02d",n+1),formula, 0, 2.0*TMath::Pi());//Just for drawing
 	}
 
 	//get vn's from fit
@@ -98,7 +99,7 @@ void FitDrawTwo(int ic=0)
 		legendPhi->AddEntry(fFitvn[n],Form("n = %d, v_n = %.3f #pm %.4f ",n+1, vn[n][ic], vnError[n][ic]),"l");
 	}	
 	legendPhi->Draw();
-	gPad->GetCanvas()->SaveAs(Form("figs/TwoPartDecomposeC%02d.pdf",ic));
+	gPad->GetCanvas()->SaveAs(Form("../figs/TwoPartDecomposeC%02d.pdf",ic));
 
 }
 
@@ -107,9 +108,9 @@ void SaveVns()
 	double Cent[NC] = {0.,1.,2.};
 	double eCent[NC] = {0.,0.,0.};
 	TGraphErrors *gr_fittwo[NH];
-	for(int ih=0; ih<NH; ih++)gr_fittwo[ih]= new TGraphErrors(NC,Cent,vn[ih],eCent,vnError[ih]);
-	TFile *output = new TFile("out_VnFitTwo.root");
-	for(int ih=0; ih<NH; ih++)gr_fittwo[ih]->Write(Form("gr_fittwo_H%02d_cent",ih));
+	for(int ih=1; ih<NH; ih++)gr_fittwo[ih]= new TGraphErrors(NC,Cent,vn[ih],eCent,vnError[ih]);
+	TFile *output = new TFile("out_VnFitTwo.root","recreate");
+	for(int ih=1; ih<NH; ih++)gr_fittwo[ih]->Write(Form("gr_fittwo_H%02d_cent",ih));
 	output->Write();
 	output->Close();
 }
