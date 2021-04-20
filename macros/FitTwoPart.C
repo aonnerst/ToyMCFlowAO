@@ -89,7 +89,7 @@ void FitDrawTwo(int ic=0)
 	cout << "ok, 2!" <<endl;
     TLegend *legendPhi = new TLegend(0.6,0.6,0.8,0.85,"","brNDC");
     legendPhi->SetTextSize(0.03);legendPhi->SetBorderSize(0);legendPhi->SetFillStyle(0);//legend settings;
-	legendPhi->AddEntry(fFitvn[1],Form("Centrality %s",strCentrality[ic].Data()));
+	legendPhi->AddEntry((TObjArray*)NULL,Form("Centrality %s",strCentrality[ic].Data()));
 	//for loop 
 	for (Int_t i=2; i<=NH; i++) {
 		vn[i][ic]=fFit->GetParameter(i);
