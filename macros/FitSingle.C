@@ -24,8 +24,7 @@ TH1D *hPhiPsi[NH][NC];
 TF1 *fFit[NH][NC];
 Double_t vn[NH][NC]={{-999}};
 Double_t vnError[NH][NC]={{-999}};
-Double_t ly[NC] = {1.15e+5, 3.5e+4, 8500};
-Double_t hy[NC] = {1.45e+5, 7.e+4, 16500};
+
 
 void LoadData(TString);
 void FitDrawPhi(int);
@@ -60,7 +59,7 @@ void FitDrawPhi(int ic=0)
 		fFit[ih][ic]->SetParameter(0,1E4);
 		fFit[ih][ic]->SetParameter(ih,inputVn[ih][ic]);
 	}
-	for (Int_t ih=1; ih<=NH; ih++) hPhiPsi[ih][ic]->Fit(fFit[ih][ic]->GetName(),"0Q");
+	for (Int_t ih=1; ih<=NH; ih++) hPhiPsi[ih][ic]->Fit(fFit[ih][ic]->GetName());
 	for (Int_t ih=1; ih<=NH; ih++){
 		vn[ih][ic]=fFit[ih][ic]->GetParameter(1);
 		vnError[ih][ic]=fFit[ih][ic]->GetParError(1);
@@ -68,7 +67,7 @@ void FitDrawPhi(int ic=0)
 
 
 	gStyle->SetOptStat(0);
-	TCanvas *can = new TCanvas(Form("C%02d",ic),"canvas",1024,740);
+	TCanvas *can = new TCanvas("C2","canvas",1024,740);
 	
 	can->SetFillStyle(4000);
 	can->SetLeftMargin(0.15);
@@ -76,14 +75,13 @@ void FitDrawPhi(int ic=0)
    	
    	//For editing canvas #include "include/rootcommon.h"
    	double lowx = 0.,highx=2*TMath::Pi();
-  	//double ly=hPhiPsi[1][ic]->GetMinimum()*0.99, hy= ly+1000;
-  	
-  	TH2F *hfr = new TH2F("hfr"," ", 100,lowx, highx, 10, ly[ic], hy[ic]); // numbers: tics x, low limit x, upper limit x, tics y, low limit y, upper limit y
-  	hset( *hfr, "#Delta#phi=#phi-#psi_{n}", "dN/d#Delta#phi",0.9,0.9, 0.05,0.05, 0.01,0.01, 0.03,0.03, 510,505);//settings of the upper pad: x-axis, y-axis
+  	//double ly=hDeltaPhiSum[ic]->GetMinimum()*0.99,hy=hDeltaPhiSum[ic]->GetMaximum()*1.01;
+  	Double_t ly = 8500, hy=16500;
+  	TH2F *hfr = new TH2F("hfr"," ", 100,lowx, highx, 10, ly, hy); // numbers: tics x, low limit x, upper limit x, tics y, low limit y, upper limit y
+  	hset( *hfr, "#Delta#phi=#phi-#psi_{n}", "dN/d#Delta#phi",0.9,0.9, 0.15,0.05, 0.01,0.01, 0.03,0.03, 510,505);//settings of the upper pad: x-axis, y-axis
   	hfr->Draw();
-
-  	TLegend *legend = new TLegend(0.6,0.67,0.8,0.88,"","brNDC");
-    legend->SetTextSize(0.03);legend->SetBorderSize(0);legend->SetFillStyle(0);//legend settings;
+  	TLegend *legend = new TLegend(0.5,0.6,0.8,0.85,"","brNDC");
+    legend->SetTextSize(0.04);legend->SetBorderSize(0);legend->SetFillStyle(0);//legend settings;
   	legend->AddEntry((TObjArray*)NULL,Form("Centrality %s",strCentrality[ic].Data()));
 
   	for(int ih=2; ih<=NH; ih++){
@@ -98,7 +96,6 @@ void FitDrawPhi(int ic=0)
   	}
   	legend->Draw();
 	gPad->GetCanvas()->SaveAs(Form("../figs/SingleParticle_C%02d.pdf",ic));
-	gPad->GetCanvas()->Update();
 }
 void SaveVns()
 {
