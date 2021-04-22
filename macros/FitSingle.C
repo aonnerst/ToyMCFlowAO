@@ -75,13 +75,13 @@ void FitDrawPhi(int ic=0)
    	
    	//For editing canvas #include "include/rootcommon.h"
    	double lowx = 0.,highx=2*TMath::Pi();
-  	//double ly=hDeltaPhiSum[ic]->GetMinimum()*0.99,hy=hDeltaPhiSum[ic]->GetMaximum()*1.01;
+  	//Double_t ly=hPhiPsi[1][ic]->GetMinimum()*0.99,hy=hPhiPsi[1][ic]->GetMaximum()*1.01;
   	Double_t ly = 8500, hy=16500;
   	TH2F *hfr = new TH2F("hfr"," ", 100,lowx, highx, 10, ly, hy); // numbers: tics x, low limit x, upper limit x, tics y, low limit y, upper limit y
   	hset( *hfr, "#Delta#phi=#phi-#psi_{n}", "dN/d#Delta#phi",0.9,0.9, 0.15,0.05, 0.01,0.01, 0.03,0.03, 510,505);//settings of the upper pad: x-axis, y-axis
   	hfr->Draw();
-  	TLegend *legend = new TLegend(0.5,0.6,0.8,0.85,"","brNDC");
-    legend->SetTextSize(0.04);legend->SetBorderSize(0);legend->SetFillStyle(0);//legend settings;
+  	TLegend *legend = new TLegend(0.599,0.65,0.899,0.85,"","brNDC");
+    legend->SetTextSize(0.025);legend->SetBorderSize(0);legend->SetFillStyle(0);//legend settings;
   	legend->AddEntry((TObjArray*)NULL,Form("Centrality %s",strCentrality[ic].Data()));
 
   	for(int ih=2; ih<=NH; ih++){

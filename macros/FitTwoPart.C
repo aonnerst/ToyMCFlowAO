@@ -96,7 +96,7 @@ void FitDrawTwo(int ic=0)
 		vnError[i][ic]=fFit->GetParError(i);
 		fFitvn[i]->SetParameter(1,vn[i][ic]);// Setting individual component vn
 		fFitvn[i]->SetParameter(0, fFit->GetParameter(0));//Normalization
-		fFitvn[i]->SetLineColor(gColors[i]);
+		fFitvn[i]->SetLineColor(gColors[i-2]);
 		fFitvn[i]->Draw("same");
 		legendPhi->AddEntry(fFitvn[i],Form("v_{%d} = %.3f #pm %.4f ",i, vn[i][ic], vnError[i][ic]),"l");
 	}	
