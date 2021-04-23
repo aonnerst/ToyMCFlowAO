@@ -30,12 +30,16 @@ string strHDummy[] = {"2","3","4","5","6","7","8","9","10","11","12"};//vn
 void Changelabel(TH2F *hid, TGraphErrors *gr,  string binlabels[]);
 void LoadData(TString); //Loading TGraphs
 void DrawPSpectra(int);
+void SaveGraphs(int);
 
 //---Main Function------
 void PSpectra(TString infile="../output/toymcflowao_1d0eb42_10k.root")
 {
 	LoadData(infile);
-	for(int ic=0; ic<NC; ic++) DrawPSpectra(ic);
+	for(int ic=0; ic<NC; ic++) {
+		DrawPSpectra(ic);
+		SaveGraphs(ic);
+	}
 }
 
 //------Member Functions-------
@@ -95,7 +99,7 @@ void DrawPSpectra(int ic=0)
 		gr_pvn[ic][i]->SetLineWidth(2);
 		gr_pvn[ic][i]->SetMarkerStyle(gMarkers[i]);
 		gr_pvn[ic][i]->SetMarkerColor(gColors[i]);
-		gr_pvn[ic][i]->Draw("plsame");
+		gr_pvn[ic][i]->Draw("psame");
 		legend->AddEntry(gr_pvn[ic][i],Form("%s", gr_Names[i].Data()),"pl");
   		
   	}
@@ -117,4 +121,13 @@ void Changelabel(TH2F *hid, TGraphErrors *gr,  string binlabels[]){
       hid->GetXaxis()->LabelsOption("h");
 	}
 	//cout << endl;
+}
+
+void SaveGraphs(int ic = 0)
+{
+	TFile *output = new TFile("out_GraphsForRatio.root","recreate");
+	for(int im=0; im<NMethod; im++) gr_pvn[ic][im]->Write(Form("gr_pv%02d_%s",ic+1, gr_Names[im].Data()));
+	gr_vnin[ic]->Write(Form("gr_vnin_%02d",ic));
+	output->Write();
+	output->Close();
 }

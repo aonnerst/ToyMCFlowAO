@@ -65,6 +65,7 @@ int main(int argc, char **argv)
 	TH1D *hPhiEvent[NPhiHist][NC];
 	TH1D *hResolution[NH][NC];
 	TH1D *hResolutionDist[NH][NC];
+	TH1D *hResolutionDistA[NH][NC];
 	TString strformula = "[0]*(1";
 	for (Int_t ih=0; ih<NH; ih++){
 		strformula += Form("+2*[%d]*TMath::Cos(%d*(x-[%d]))",ih+1,ih+1,NH+ih+1);
@@ -90,6 +91,7 @@ int main(int argc, char **argv)
 			hPhiPsiQ[ih][ic]        = new TH1D(Form("hPhiPsiQC%02dH%02d",ic,ih+1),Form("n=%d,%s",ih+1,strCentrality[ic].Data()),200,0.0, 2.0*TMath::Pi());
 			hResolution[ih][ic]     = new TH1D(Form("hResolutionC%02dH%02d",ic,ih+1),Form("n=%d,%s",ih+1,strCentrality[ic].Data()),200,-100, 100);
 			hResolutionDist[ih][ic] = new TH1D(Form("hResolutionDistC%02dH%02d",ic,ih+1),Form("n=%d,%s",ih+1,strCentrality[ic].Data()),200,-10, 10);
+			hResolutionDistA[ih][ic]= new TH1D(Form("hResolutionDistAC%02dH%02d",ic,ih+1),Form("n=%d,%s",ih+1,strCentrality[ic].Data()),200,-10, 10);
 		}
 		
 		
@@ -192,6 +194,7 @@ int main(int argc, char **argv)
 			//if(n==1) cout <<  Form("n=%d,psi=%.3f, %.3f, %.3f",n,Psi_n[n], Psi_n_EP[n], Psi_n_EPQ[n]) << endl;
 			hResolution[n][ic]->Fill(AngleDiff[n]);
 			hResolutionDist[n][ic]->Fill(DeltaPhi(Psi_n[n], Psi_n_EP[n]));
+			hResolutionDistA[n][ic]->Fill(Psi_n[n]-Psi_n_EP[n]);
 		}
 		
 	}// End of event loop
@@ -228,13 +231,14 @@ int main(int argc, char **argv)
 			MeanArrayResolutionError[n][ic]=hResolution[n][ic]->GetMeanError();
 
 
+
 			//for loop for swapping  vn arrays for vn[ic][n] !transformation!
 
 			vn_TwoPart[n][ic]=TMath::Sqrt(TMath::Abs(MeanArrayTwoParticle[n][ic]));
-			vn_TwoPartError[n][ic]=TMath::Sqrt(MeanArrayTwoPartError[n][ic]);//Check error propagation in textbook
+			vn_TwoPartError[n][ic]=0.5*TMath::Power(MeanArrayTwoPartError[n][ic],-0.5);//Check error propagation in textbook
 			vn_EvtPl[n][ic]=MeanArrayEventPlane[n][ic];
 			vn_EvtPlQvec[n][ic]=MeanArrayEventPlaneQVec[n][ic]/MeanArrayResolution[n][ic];
-			vn_obs_ERROR[n][ic]=TMath::Power(((1/MeanArrayResolution[n][ic])*MeanArrayEvtPlErrorQvec[n][ic]),2)+TMath::Power(((MeanArrayEventPlaneQVec[n][ic]/TMath::Power(MeanArrayResolution[n][ic],2))*MeanArrayResolutionError[n][ic]),2);	
+			vn_obs_ERROR[n][ic]=TMath::Abs(vn_EvtPlQvec[n][ic])*TMath::Sqrt(TMath::Power(MeanArrayEvtPlErrorQvec[n][ic]/MeanArrayEventPlaneQVec[n][ic],2)+TMath::Power(MeanArrayResolutionError[n][ic]/MeanArrayResolution[n][ic],2));	
 		}
 
 	}
