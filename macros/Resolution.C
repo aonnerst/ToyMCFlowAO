@@ -54,15 +54,15 @@ void DrawRes(int ic=0)
    	can->SetBottomMargin(0.15);
 	can->SetFillStyle(4000);
 
-    double lowx = -1,highx=7;
-  	double ly=hResolutionDist[1][ic]->GetMinimum()*0.1,hy=hResolutionDist[1][ic]->GetMaximum()*1.4;
+    double lowx = -5,highx=5;
+  	double ly=hResolutionDist[0][ic]->GetMinimum()*0.1,hy=hResolutionDist[0][ic]->GetMaximum()*1.4;
   	TH2F *hfr = new TH2F("hfr"," ", 100,lowx, highx, 10, ly, hy); // numbers: tics x, low limit x, upper limit x, tics y, low limit y, upper limit y
   	hset( *hfr, "#psi_{n}-#psi_{EP}", "dN/d#phi",0.7,0.7, 0.07,0.07, 0.01,0.01, 0.03,0.03, 510,505);//settings of the upper pad: x-axis, y-axis
   	hfr->Draw();
 
   	TLegend *legendRes = new TLegend(0.5,0.6,0.8,0.85,"","brNDC");
     legendRes->SetTextSize(0.04);legendRes->SetBorderSize(0);legendRes->SetFillStyle(0);//legend settings;
-    legendRes->AddEntry((TObjArray*)NULL,Form("Centrality %s",strCentrality[ic].Data()));
+
     for(Int_t i=1; i<NH; i++){
     	hResolutionDist[i][ic]->SetLineColor(gColors[i]);
    		hResolutionDist[i][ic]->SetLineWidth(5);
